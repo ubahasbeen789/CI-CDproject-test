@@ -59,6 +59,22 @@ jobs:
         push: true
         tags: ktchambers/github-actions-demo:latest
 
+deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ubuntu@${{ secrets.EC2_IP_ADDRESS }} << 'EOF'
+            sudo docker pull ktchambers/github-actions-demo:latest
+            sudo docker stop $(docker ps -q --filter ktchambers/github-actions-demo:latest)
+            sudo docker run -d -p 5001:8080 your-docker-image:latest
+          EOF
+
     # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
     # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
     #
